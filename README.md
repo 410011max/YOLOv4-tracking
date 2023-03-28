@@ -2,7 +2,7 @@
 
 <div align="center">
   <p>
-  <img src="trackers/strongsort/results/track_all_1280_025conf.gif" width="700"/>
+  <img src="video/cars1_result.gif" width="500"/>
   </p>
 </div>
 
