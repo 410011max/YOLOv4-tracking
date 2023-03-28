@@ -16,7 +16,7 @@ $ pip install -r requirements.txt
 ## Tracking
 
 ```bash
-$ python track.py
+$ python track.py --yolov4_tiny model_data/yolov4_tiny_weights_coco.pth
 ```
   
 - Tracking sources

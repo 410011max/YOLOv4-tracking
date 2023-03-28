@@ -17,11 +17,11 @@ from ultralytics.yolo.utils.checks import check_requirements, check_suffix, chec
 from ultralytics.yolo.utils.downloads import attempt_download, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
-from yolo import YOLOv4
+from yolo import YOLOv4_tiny
 
 class AutoBackend(nn.Module):
 
-    def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True, yolov4=False):
+    def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True, yolov4_tiny=None):
         """
         MultiBackend class for python inference on various platforms using Ultralytics YOLO.
 
@@ -53,7 +53,7 @@ class AutoBackend(nn.Module):
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
         pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, triton = self._model_type(w)
-        self.yolov4 = yolov4
+        self.yolov4_tiny = yolov4_tiny
         fp16 &= pt or jit or onnx or engine or nn_module  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
@@ -63,8 +63,8 @@ class AutoBackend(nn.Module):
             w = attempt_download(w)  # download if not local
 
         # NOTE: special case: in-memory pytorch model
-        if yolov4:
-            model = YOLOv4()
+        if yolov4_tiny:
+            model = YOLOv4_tiny(model_path=yolov4_tiny)
             names = model.class_names
             model.net.half() if fp16 else model.net.float()
             self.model = model
@@ -257,7 +257,7 @@ class AutoBackend(nn.Module):
             im = im.half()  # to FP16
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
-        if self.yolov4:
+        if self.yolov4_tiny:
             y = self.model.detect(im)
         elif self.pt or self.nn_module:  # PyTorch
             y = self.model(im, augment=augment, visualize=visualize) if augment or visualize else self.model(im)

@@ -45,6 +45,7 @@ from utils.utils import resize_image
 @torch.no_grad()
 def run(
         source='0',
+        yolov4_tiny=None,
         yolo_weights=WEIGHTS / 'yolov5m.pt',  # model.pt path(s),
         reid_weights=WEIGHTS / 'osnet_x0_25_msmt17.pt',  # model.pt path,
         tracking_method='strongsort',
@@ -100,7 +101,7 @@ def run(
 
     # Load model
     device = select_device(device)
-    model = AutoBackend(yolo_weights, device=device, dnn=dnn, fp16=half, yolov4=True)
+    model = AutoBackend(yolo_weights, device=device, dnn=dnn, fp16=half, yolov4_tiny=yolov4_tiny)
     stride, names, pt = model.stride, model.names, False #model.pt
     imgsz = check_imgsz(imgsz, stride=stride)  # check image size
 
@@ -293,6 +294,7 @@ def run(
 
 def parse_opt():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--yolov4_tiny', type=Path, default=None, help='model.pt path(s)')
     parser.add_argument('--yolo-weights', nargs='+', type=Path, default=WEIGHTS / 'yolov8x.pt', help='model.pt path(s)')
     parser.add_argument('--reid-weights', type=Path, default=WEIGHTS / 'osnet_x1_0_msmt17.pt')
     parser.add_argument('--tracking-method', type=str, default='ocsort', help='deepocsort, botsort, strongsort, ocsort, bytetrack')

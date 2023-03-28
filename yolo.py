@@ -16,7 +16,7 @@ from utils.utils_bbox import DecodeBox, DecodeBoxNP
 '''
 训练自己的数据集必看注释！
 '''
-class YOLOv4(object):
+class YOLOv4_tiny(object):
     _defaults = {
         "model_path"        : 'model_data/yolov4_tiny_weights_coco.pth',
         "classes_path"      : 'model_data/coco_classes.txt',
@@ -40,7 +40,7 @@ class YOLOv4(object):
     #---------------------------------------------------#
     #   初始化YOLO
     #---------------------------------------------------#
-    def __init__(self, **kwargs):
+    def __init__(self, model_path=None, **kwargs):
         self.__dict__.update(self._defaults)
         for name, value in kwargs.items():
             setattr(self, name, value)
@@ -59,6 +59,10 @@ class YOLOv4(object):
         hsv_tuples = [(x / self.num_classes, 1., 1.) for x in range(self.num_classes)]
         self.colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
         self.colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), self.colors))
+        
+        if model_path:
+            self.model_path = model_path
+
         self.generate()
 
         show_config(**self._defaults)
