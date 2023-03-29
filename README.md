@@ -26,11 +26,11 @@ $ python track.py --yolov4-tiny yolov4_tiny/model_data/yolov4_tiny_weights_coco.
 
   ```bash
   $ python track.py --source 0                               # webcam
-                            img.jpg                         # image
-                            vid.mp4                         # video
-                            path/                           # directory
-                            path/*.jpg                      # glob
-                            'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                             img.jpg                         # image
+                             vid.mp4                         # video
+                             path/                           # directory
+                             path/*.jpg                      # glob
+                             'https://youtu.be/Zgi9g1ksQHc'  # YouTube
   ```
 
 - Tracking methods
