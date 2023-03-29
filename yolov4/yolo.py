@@ -8,21 +8,21 @@ import torch.nn as nn
 import cv2
 from PIL import ImageDraw, ImageFont, Image
 
-from nets.yolo import YoloBody
-from utils.utils import (cvtColor, get_anchors, get_classes, preprocess_input,
+from yolov4.nets.yolov4 import YoloBody
+
+from yolov4.utils.utils import (cvtColor, get_anchors, get_classes, preprocess_input,
                          resize_image, show_config)
-from utils.utils_bbox import DecodeBox, DecodeBoxNP
+from yolov4.utils.utils_bbox import DecodeBox, DecodeBoxNP
 
 '''
 训练自己的数据集必看注释！
 '''
-class YOLOv4_tiny(object):
+class YOLOv4(object):
     _defaults = {
-        "model_path"        : 'model_data/yolov4_tiny_weights_coco.pth',
-        "classes_path"      : 'model_data/coco_classes.txt',
-        "anchors_path"      : 'model_data/yolo_anchors.txt',
-        "anchors_mask"      : [[3,4,5], [1,2,3]],
-        "phi"               : 0,  
+        "model_path"        : 'yolov4/model_data/yolov4_weights_coco.pth',
+        "classes_path"      : 'yolov4/model_data/coco_classes.txt',
+        "anchors_path"      : 'yolov4/model_data/yolo_anchors.txt',
+        "anchors_mask"      : [[6, 7, 8], [3, 4, 5], [0, 1, 2]],
         "input_shape"       : [416, 416],
         "confidence"        : 0.5,
         "nms_iou"           : 0.3,
@@ -45,7 +45,7 @@ class YOLOv4_tiny(object):
         for name, value in kwargs.items():
             setattr(self, name, value)
             self._defaults[name] = value 
-            
+
         #---------------------------------------------------#
         #   获得种类和先验框的数量
         #---------------------------------------------------#
@@ -66,7 +66,7 @@ class YOLOv4_tiny(object):
         self.generate()
 
         show_config(**self._defaults)
-        
+
     #---------------------------------------------------#
     #   生成模型
     #---------------------------------------------------#
@@ -74,10 +74,10 @@ class YOLOv4_tiny(object):
         #---------------------------------------------------#
         #   建立yolo模型，载入yolo模型的权重
         #---------------------------------------------------#
-        self.net    = YoloBody(self.anchors_mask, self.num_classes, self.phi)
-        device      = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.net = YoloBody(self.anchors_mask, self.num_classes)
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.net.load_state_dict(torch.load(self.model_path, map_location=device))
-        self.net    = self.net.eval()
+        self.net = self.net.eval()
         print('{} model, anchors, and classes loaded.'.format(self.model_path))
         if not onnx:
             if self.cuda:
@@ -118,11 +118,11 @@ class YOLOv4_tiny(object):
                                                     
             if results[0] is None: 
                 return []
-            
+
             top_label   = np.array(results[0][:, 6], dtype = 'int32')
             top_conf    = results[0][:, 4] * results[0][:, 5]
             top_boxes   = results[0][:, :4]
-            
+
             top_label = top_label.reshape(-1, 1)
             top_conf = top_conf.reshape(-1, 1)
             
@@ -133,7 +133,7 @@ class YOLOv4_tiny(object):
 
             return output
 
-        
+
     def get_FPS(self, image, test_interval):
         image_shape = np.array(np.shape(image)[0:2])
         #---------------------------------------------------------#

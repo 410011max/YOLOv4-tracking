@@ -16,12 +16,13 @@ $ pip install -r requirements.txt
 ## Tracking
 
 ```bash
-$ python track.py --yolov4_tiny model_data/yolov4_tiny_weights_coco.pth
+# YOLOv4
+$ python track.py --yolov4 yolov4/model_data/yolov4_weights_coco.pth
+# YOLOv4-tiny
+$ python track.py --yolov4-tiny yolov4_tiny/model_data/yolov4_tiny_weights_coco.pth
 ```
   
 - Tracking sources
-
-  Tracking can be run on most video formats
 
   ```bash
   $ python track.py --source 0                               # webcam
@@ -31,7 +32,17 @@ $ python track.py --yolov4_tiny model_data/yolov4_tiny_weights_coco.pth
                             path/*.jpg                      # glob
                             'https://youtu.be/Zgi9g1ksQHc'  # YouTube
   ```
-  
+
+- Tracking methods
+
+  ```bash
+  $ python track.py --tracking-method ocsort
+                                      deepocsort
+                                      strongsort
+                                      bytetrack
+                                      botsort
+  ```
+
 - Filter tracked classes
 
   By default the tracker tracks all MS COCO classes.

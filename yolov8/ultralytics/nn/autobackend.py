@@ -17,11 +17,13 @@ from ultralytics.yolo.utils.checks import check_requirements, check_suffix, chec
 from ultralytics.yolo.utils.downloads import attempt_download, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
-from yolo import YOLOv4_tiny
+from yolov4.yolo import YOLOv4
+from yolov4_tiny.yolo import YOLOv4_tiny
 
 class AutoBackend(nn.Module):
 
-    def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True, yolov4_tiny=None):
+    def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, 
+                 fp16=False, fuse=True, yolov4_tiny=None, yolov4=None):
         """
         MultiBackend class for python inference on various platforms using Ultralytics YOLO.
 
@@ -53,17 +55,22 @@ class AutoBackend(nn.Module):
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
         pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, triton = self._model_type(w)
-        self.yolov4_tiny = yolov4_tiny
-        fp16 &= pt or jit or onnx or engine or nn_module  # FP16
+        fp16 &= pt or jit or onnx or engine or nn_module or yolov4 or yolov4_tiny  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
         model = None  # TODO: resolves ONNX inference, verify effect on other backends
         cuda = torch.cuda.is_available() and device.type != 'cpu'  # use CUDA
         if not (pt or triton or nn_module):
             w = attempt_download(w)  # download if not local
-
         # NOTE: special case: in-memory pytorch model
-        if yolov4_tiny:
+        self.yolov4 = yolov4
+        self.yolov4_tiny = yolov4_tiny
+        if yolov4:
+            model = YOLOv4(model_path=yolov4)
+            names = model.class_names
+            model.net.half() if fp16 else model.net.float()
+            self.model = model
+        elif yolov4_tiny:
             model = YOLOv4_tiny(model_path=yolov4_tiny)
             names = model.class_names
             model.net.half() if fp16 else model.net.float()
@@ -257,7 +264,9 @@ class AutoBackend(nn.Module):
             im = im.half()  # to FP16
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
-        if self.yolov4_tiny:
+        if self.yolov4:
+            y = self.model.detect(im)
+        elif self.yolov4_tiny:
             y = self.model.detect(im)
         elif self.pt or self.nn_module:  # PyTorch
             y = self.model(im, augment=augment, visualize=visualize) if augment or visualize else self.model(im)

@@ -40,11 +40,11 @@ from yolov8.ultralytics.yolo.utils.plotting import Annotator, colors, save_one_b
 
 from trackers.multi_tracker_zoo import create_tracker
 
-from utils.utils import resize_image
 
 @torch.no_grad()
 def run(
         source='0',
+        yolov4=None,
         yolov4_tiny=None,
         yolo_weights=WEIGHTS / 'yolov5m.pt',  # model.pt path(s),
         reid_weights=WEIGHTS / 'osnet_x0_25_msmt17.pt',  # model.pt path,
@@ -101,7 +101,7 @@ def run(
 
     # Load model
     device = select_device(device)
-    model = AutoBackend(yolo_weights, device=device, dnn=dnn, fp16=half, yolov4_tiny=yolov4_tiny)
+    model = AutoBackend(yolo_weights, device=device, dnn=dnn, fp16=half, yolov4_tiny=yolov4_tiny, yolov4=yolov4)
     stride, names, pt = model.stride, model.names, False #model.pt
     imgsz = check_imgsz(imgsz, stride=stride)  # check image size
 
@@ -294,7 +294,8 @@ def run(
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--yolov4_tiny', type=Path, default=None, help='model.pt path(s)')
+    parser.add_argument('--yolov4', type=Path, default=None, help='model.pt path(s)')
+    parser.add_argument('--yolov4-tiny', type=Path, default=None, help='model.pt path(s)')
     parser.add_argument('--yolo-weights', nargs='+', type=Path, default=WEIGHTS / 'yolov8x.pt', help='model.pt path(s)')
     parser.add_argument('--reid-weights', type=Path, default=WEIGHTS / 'osnet_x1_0_msmt17.pt')
     parser.add_argument('--tracking-method', type=str, default='ocsort', help='deepocsort, botsort, strongsort, ocsort, bytetrack')
@@ -325,7 +326,7 @@ def parse_opt():
     parser.add_argument('--hide-labels', default=False, action='store_true', help='hide labels')
     parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
     parser.add_argument('--hide-class', default=False, action='store_true', help='hide IDs')
-    parser.add_argument('--half', default=False, action='store_true', help='use FP16 half-precision inference')
+    parser.add_argument('--half', action='store_true', help='use FP16 half-precision inference')
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--vid-stride', type=int, default=1, help='video frame-rate stride')
     parser.add_argument('--retina-masks', action='store_true', help='whether to plot masks in native resolution')
